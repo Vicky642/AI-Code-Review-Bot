@@ -1,0 +1,15 @@
+name: "Logic Errors"
+description: "Detects logical flaws, off-by-one errors, edge cases, and algorithmic inefficiencies."
+type: "Logic"
+severity_threshold: "Medium"
+
+instructions: |
+  Focus exclusively on logical correctness and potential runtime errors.
+  Do not flag formatting, linting, or spelling issues.
+  
+  Look for:
+  - Null pointer dereferences
+  - Off-by-one errors in loops
+  - Missing boundary checks
+  - Unhandled promise rejections
+  - Race conditions

@@ -1,0 +1,26 @@
+provider: anthropic              # or openai, ollama, groq
+model: claude-sonnet-4           # specific model
+fallback_provider: ollama        # local fallback
+
+review_passes:
+  - security                     # always on
+  - logic
+  - style
+  - performance
+  - documentation
+
+rules:
+  auto_detect: true              # auto-detect stack
+  custom_rules: ./rules/         # path to custom rules
+
+thresholds:
+  block_pr_on: critical          # block merge on critical issues only
+  auto_approve_if: no_issues     # auto-approve clean PRs
+
+notifications:
+  slack_webhook: ${{ secrets.SLACK_URL }}
+  email_digest: weekly
+
+dashboard:
+  enabled: true
+  port: 3000
