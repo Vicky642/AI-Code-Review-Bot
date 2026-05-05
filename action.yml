@@ -1,0 +1,27 @@
+name: 'ReviewMind AI Code Review'
+description: 'Your AI senior engineer, reviewing every PR before humans do.'
+author: 'ReviewMind'
+inputs:
+  github_token:
+    description: 'GitHub token for PR API access'
+    required: true
+    default: ${{ github.token }}
+  provider:
+    description: 'LLM provider to use (openai, anthropic)'
+    required: true
+    default: 'anthropic'
+  openai_key:
+    description: 'OpenAI API Key (if using openai provider)'
+    required: false
+  anthropic_key:
+    description: 'Anthropic API Key (if using anthropic provider)'
+    required: false
+  fallback_provider:
+    description: 'Fallback LLM provider if primary fails (openai, anthropic)'
+    required: false
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'check-circle'
+  color: 'blue'

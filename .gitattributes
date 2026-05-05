@@ -1,0 +1,6 @@
+# Normalize line endings to LF across all platforms
+* text=auto eol=lf
+
+# Force binary for compiled bundles to avoid corruption
+dist/index.js binary
+dist/index.js.map binary
