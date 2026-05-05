@@ -1,0 +1,25 @@
+name: ReviewMind — AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  reviewmind:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ReviewMind
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          provider: anthropic
+          anthropic_key: ${{ secrets.ANTHROPIC_KEY }}
+          # openai_key: ${{ secrets.OPENAI_KEY }}   # uncomment to use OpenAI instead

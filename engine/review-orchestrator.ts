@@ -1,15 +1,15 @@
 import { File } from 'parse-diff';
 import { parseDiffChunks } from './diff-parser';
 import { buildSystemPrompt } from './prompt-builder';
-import { OpenAIProvider } from '../providers/openai';
-import { AnthropicProvider } from '../providers/anthropic';
-import { BaseProvider } from '../providers/base-provider';
+import { selectProvider } from '../providers/provider-selector';
 import { ReviewComment } from '../action/comment-poster';
+import { enrichWithOwasp } from '../security/owasp-mapper';
 
 interface OrchestratorOptions {
   providerName: string;
   openaiKey?: string;
   anthropicKey?: string;
+  fallbackProviderName?: string;
 }
 
 export async function orchestrateReview(
@@ -19,17 +19,14 @@ export async function orchestrateReview(
   const chunks = parseDiffChunks(files);
   const comments: ReviewComment[] = [];
 
-  let provider: BaseProvider;
+  const provider = selectProvider({
+    providerName: options.providerName,
+    openaiKey: options.openaiKey,
+    anthropicKey: options.anthropicKey,
+    fallbackProviderName: options.fallbackProviderName,
+  });
 
-  if (options.providerName.toLowerCase() === 'openai') {
-    provider = new OpenAIProvider({ apiKey: options.openaiKey });
-  } else if (options.providerName.toLowerCase() === 'anthropic') {
-    provider = new AnthropicProvider({ apiKey: options.anthropicKey });
-  } else {
-    throw new Error(`Unsupported provider: ${options.providerName}`);
-  }
-
-  // We run two passes: Security and Logic
+  // Run two focused passes: Security and Logic
   const passes: ('Security' | 'Logic')[] = ['Security', 'Logic'];
 
   for (const chunk of chunks) {
@@ -40,15 +37,23 @@ export async function orchestrateReview(
     });
 
     const passResults = await Promise.all(passPromises);
-    
+
     // Flatten and map to ReviewComment format
     for (const suggestions of passResults) {
       for (const suggestion of suggestions) {
+        // Enrich security findings with OWASP references
+        let body = `**[${suggestion.type} - ${suggestion.severity}]**\n\n${suggestion.body}`;
+        if (suggestion.type === 'Security') {
+          body = `**[${suggestion.type} - ${suggestion.severity}]**\n\n${enrichWithOwasp(suggestion.body, suggestion.type)}`;
+        }
+
         comments.push({
           path: suggestion.fileName,
           line: suggestion.endLine,
-          start_line: suggestion.startLine !== suggestion.endLine ? suggestion.startLine : undefined,
-          body: `**[${suggestion.type} - ${suggestion.severity}]**\n\n${suggestion.body}`,
+          start_line: (suggestion.startLine && suggestion.startLine < suggestion.endLine)
+            ? suggestion.startLine
+            : undefined,
+          body,
         });
       }
     }
@@ -56,3 +61,4 @@ export async function orchestrateReview(
 
   return comments;
 }
+

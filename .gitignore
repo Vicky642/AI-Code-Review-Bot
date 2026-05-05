@@ -1,3 +1,3 @@
 node_modules/
-dist/
+# dist/ is intentionally committed — required for GitHub Actions to run without a build step
 .env
